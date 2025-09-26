@@ -1,0 +1,267 @@
+/* Mentorship.css */
+
+/* General container style */
+.mentor-chat-container,
+.session-agenda-container,
+.session-summary-container {
+  max-width: 640px;
+  margin: 2rem auto;
+  background: rgba(31, 38, 135, 0.25);
+  backdrop-filter: blur(14px);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 12px 40px rgba(31, 38, 135, 0.25);
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #dde6ffcc;
+  user-select: none;
+}
+
+/* Mentor list */
+.mentor-list-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1.25rem;
+}
+
+.mentor-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+}
+
+.mentor-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mentor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+
+.mentor-card img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.mentor-info h3 { margin: 0; color: #dff0ff; }
+.mentor-info p { margin: 0; color: #bcd8ff; font-size: 0.95rem; }
+
+/* Mentor Profile */
+.mentor-profile-container { max-width: 860px; margin: 2rem auto; padding: 1rem; }
+.profile-card { display: flex; gap: 1.25rem; align-items: center; background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 14px; position: relative; z-index: 2; }
+.profile-card img { width: 110px; height: 110px; border-radius: 12px; object-fit: cover; flex-shrink: 0; display: block; }
+.profile-info h2 { margin: 0 0 0.25rem 0; color: #eaf6ff; }
+.profile-info .expertise { color: #9fd0ff; margin-bottom: 0.75rem; }
+.profile-info .bio { color: #cfe7ff; line-height: 1.4; }
+.back-btn { background: transparent; color: #9fd0ff; border: none; cursor: pointer; margin-bottom: 0.75rem; font-weight: 600; }
+.profile-actions { margin-top: 1rem; }
+
+/* Headers */
+.mentor-chat-container header,
+.session-agenda-container h2,
+.session-summary-container h2 {
+  color: #90caff;
+  margin-bottom: 1.5rem;
+  font-size: clamp(1.8rem, 3vw, 2.2rem);
+  font-weight: 700;
+  user-select: text;
+}
+
+/* MentorChat Styling */
+.mentor-chat-container header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Ensure chat stacks below profile visuals */
+.mentor-chat-container { position: relative; z-index: 1; }
+
+.mentor-chat-container header button {
+  background: transparent;
+  border: none;
+  color: #aec6ff;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1.1rem;
+  user-select: none;
+  transition: color 0.3s ease;
+}
+
+.mentor-chat-container header button:hover {
+  color: #5aa4ff;
+  outline: none;
+}
+
+.chat-history {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  padding-right: 0.5rem;
+}
+
+.chat-message {
+  padding: 0.6rem 1rem;
+  border-radius: 14px;
+  margin-bottom: 0.75rem;
+  max-width: 75%;
+  word-wrap: break-word;
+  font-size: 1rem;
+  line-height: 1.3;
+  user-select: text;
+}
+
+.chat-message.mentor {
+  background: rgba(90, 164, 255, 0.2);
+  color: #d8e9ff;
+  align-self: flex-start;
+}
+
+.chat-message.user {
+  background: rgba(76, 126, 255, 0.7);
+  color: #f0f9ff;
+  align-self: flex-end;
+}
+
+/* Chat input and send button */
+.chat-input-area {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.chat-input-area input {
+  flex: 1;
+  padding: 0.85rem 1rem;
+  border-radius: 30px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #dde6ffcc;
+  font-size: 1rem;
+  user-select: text;
+}
+
+.chat-input-area input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.chat-input-area button {
+  padding: 0 1.7rem;
+  border-radius: 30px;
+  background: linear-gradient(90deg, #5aa4ff, #4c7eff);
+  border: none;
+  font-weight: 700;
+  color: #f0f9ff;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+.chat-input-area button:hover,
+.chat-input-area button:focus {
+  background: linear-gradient(90deg, #4c7eff, #5aa4ff);
+  transform: scale(1.05);
+  outline: none;
+}
+
+/* SessionAgenda Styling */
+.session-agenda-container ul {
+  list-style-type: disc;
+  margin-left: 1.6rem;
+  margin-bottom: 2rem;
+  color: #b0c8ffff;
+  font-size: 1.15rem;
+  user-select: text;
+}
+
+.session-agenda-container ul li {
+  margin-bottom: 0.6rem;
+}
+
+.session-agenda-container input[type="text"] {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 28px;
+  border: none;
+  margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #dde6ffcc;
+  font-size: 1rem;
+  user-select: text;
+}
+
+.session-agenda-container input[type="text"]:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.session-agenda-container button {
+  padding: 1rem 3rem;
+  border-radius: 28px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(90deg, #5aa4ff, #4c7eff);
+  color: #f0f9ff;
+  box-shadow: 0 10px 30px rgba(76, 126, 255, 0.6);
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+.session-agenda-container button:hover,
+.session-agenda-container button:focus {
+  background: linear-gradient(90deg, #4c7eff, #5aa4ff);
+  box-shadow: 0 14px 40px rgba(76, 126, 255, 0.9);
+  transform: scale(1.05);
+  outline: none;
+}
+
+/* SessionSummary Styling */
+.session-summary-container textarea {
+  width: 100%;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  resize: vertical;
+  min-height: 200px;
+  padding: 1.2rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
+  color: #dde6ffcc;
+  user-select: text;
+}
+
+.session-summary-container textarea:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 0 12px 3px rgba(50, 100, 255, 0.8);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .mentor-chat-container,
+  .session-agenda-container,
+  .session-summary-container {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  .chat-input-area {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .chat-input-area button {
+    width: 100%;
+  }
+}

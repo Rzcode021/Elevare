@@ -1,0 +1,136 @@
+.recommendation-container {
+  max-width: 640px;
+  margin: 3rem auto;
+  padding: 3rem 2.5rem;
+  background: rgba(31, 38, 135, 0.25);
+  backdrop-filter: blur(14px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 10px 30px rgba(31, 38, 135, 0.4);
+  color: #dde6ffcc;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+  user-select: none;
+  animation: fadeInSlideUp 1s ease forwards;
+}
+
+.recommendation-container h2 {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 700;
+  color: #90caff;
+  margin-bottom: 2rem;
+}
+
+.career-list {
+  list-style-type: disc;
+  padding-left: 1.6rem;
+  margin-bottom: 2.5rem;
+  font-size: 1.15rem;
+  color: #b0c8ffcc;
+  text-align: left;
+}
+
+.career-item {
+  margin-bottom: 0.8rem;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-cancel {
+  padding: 1rem 2rem;
+  border-radius: 28px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  cursor: pointer;
+  min-width: 150px; /* slightly smaller width */
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+/* Primary button remains the same */
+.btn-primary {
+  background: linear-gradient(90deg, #5aa4ff, #4c7eff);
+  color: #f0f9ff;
+  box-shadow: 0 10px 30px rgba(76, 126, 255, 0.55);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background: linear-gradient(90deg, #4c7eff, #5aa4ff);
+  box-shadow: 0 14px 40px rgba(76, 126, 255, 0.85);
+  transform: scale(1.05);
+  outline: none;
+}
+
+/* Cancel button styles */
+.btn-cancel {
+  background: transparent;
+  border: 2px solid #ff6b6b;
+  color: #ff6b6b;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  min-width: 120px; /* smaller than primary */
+  transition: all 0.3s ease;
+}
+
+.btn-cancel:hover,
+.btn-cancel:focus {
+  background: #ff6b6b;
+  color: white;
+  box-shadow: 0 10px 30px rgba(255, 107, 107, 0.65);
+  transform: scale(1.05);
+  outline: none;
+}
+
+/* Secondary challenge button keeps previous styles */
+.btn-secondary {
+  padding: 1rem 3rem;
+  border-radius: 28px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  cursor: pointer;
+  border: none;
+  user-select: none;
+  min-width: 230px;
+  transition: all 0.3s ease;
+  background: transparent;
+  border: 2px solid #5aa4ff;
+  color: #a4c6ff;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+  background: #5aa4ff;
+  color: #0b1833;
+  box-shadow: 0 12px 30px rgba(76, 126, 255, 0.8);
+  transform: scale(1.05);
+  outline: none;
+}
+
+/* Responsive tweak */
+@media (max-width: 700px) {
+  .action-buttons {
+    gap: 1rem;
+  }
+  .btn-primary,
+  .btn-cancel,
+  .btn-secondary {
+    min-width: 100%;
+  }
+}
+@keyframes fadeInSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

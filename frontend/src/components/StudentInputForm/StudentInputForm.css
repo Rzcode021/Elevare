@@ -1,0 +1,118 @@
+/* StudentInputForm.css */
+
+/* Container with glassmorphism styling */
+.form-container {
+  max-width: 480px;
+  background: rgba(31, 38, 135, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(14px) saturate(180%);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.4);
+  padding: 3rem 2.5rem;
+  margin: 4rem auto;
+  display: flex;
+  flex-direction: column;
+  color: #dce6ffcc;
+  animation: fadeInSlideUp 1s ease forwards;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Section heading */
+.form-container h2 {
+  color: #90caff;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 700;
+  margin-bottom: 2rem;
+  user-select: none;
+  text-align: center;
+  text-shadow: 0 0 6px rgba(58,141,255,0.6);
+}
+
+/* Labels */
+label {
+  font-weight: 600;
+  color: #aac9ffcc;
+  margin-bottom: 0.4rem;
+  display: block;
+  user-select: none;
+  font-size: 1rem;
+}
+
+/* Inputs styling */
+input[type="text"] {
+  width: 100%;
+  padding: 14px 18px;
+  font-size: 1rem;
+  font-weight: 400;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.6px solid rgba(255, 255, 255, 0.22);
+  border-radius: 14px;
+  color: #e3ebff;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: inset 0 0 6px rgba(255 255 255 / 0.1);
+  outline-offset: 0;
+  user-select: text;
+}
+
+input[type="text"]::placeholder {
+  color: rgba(227, 235, 255, 0.4);
+  font-style: italic;
+  user-select: none;
+}
+
+input[type="text"]:focus {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: #5aa4ff;
+  box-shadow: 0 0 12px rgba(90, 164, 255, 0.65);
+  outline: none;
+}
+
+/* Submit button */
+.submit-btn {
+  margin-top: 2.4rem;
+  padding: 16px 18px;
+  font-weight: 700;
+  font-size: 1.25rem;
+  background: linear-gradient(90deg, #5aa4ff, #4c7eff);
+  border: none;
+  border-radius: 30px;
+  color: #f0f9ff;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(76, 126, 255, 0.6);
+  transition: background 0.35s ease, box-shadow 0.35s ease, transform 0.25s ease;
+  user-select: none;
+  text-align: center;
+}
+
+.submit-btn:hover,
+.submit-btn:focus {
+  background: linear-gradient(90deg, #4c7eff, #5aa4ff);
+  box-shadow: 0 12px 40px rgba(76, 126, 255, 0.85);
+  transform: translateY(-3px);
+  outline: none;
+}
+
+/* Animation */
+@keyframes fadeInSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .form-container {
+    margin: 3rem 1rem;
+    padding: 2rem 1.5rem;
+  }
+
+  .submit-btn {
+    font-size: 1.1rem;
+    padding: 14px;
+  }
+}
