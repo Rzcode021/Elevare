@@ -1,0 +1,25 @@
+.app-nav {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  padding:0.6rem 1rem;
+  background: linear-gradient(90deg, rgba(14,21,68,0.8), rgba(21,28,83,0.8));
+  color: #eaf6ff;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(6px);
+}
+.brand { font-weight:800; font-size:1.1rem; color:#bfe3ff; }
+.nav-links { display:flex; gap:1rem; align-items:center; }
+.nav-links a { color:#cfe7ff; text-decoration:none; padding:0.3rem 0.6rem; border-radius:8px; }
+.nav-links a.active { background: rgba(90,164,255,0.14); color:#eaf6ff; }
+.nav-actions { display:flex; gap:0.5rem; }
+.btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.06); color: #e6f2ff; padding:0.45rem 0.9rem; border-radius:10px; cursor:pointer; }
+.btn-outline:hover { background: rgba(255,255,255,0.02); }
+
+@media (max-width: 800px) {
+  .nav-links { display:none; }
+  .app-nav { padding: 0.6rem; }
+}

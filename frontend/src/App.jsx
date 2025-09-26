@@ -15,6 +15,7 @@ import MentorProfile from './components/Mentorship/MentorProfile';
 import SessionAgenda from './components/Mentorship/SessionAgenda';
 import SessionSummary from './components/Mentorship/SessionSummary';
 import { calculateResults } from './utils/calculateResults';
+import NavBar from './components/NavBar/NavBar';
 
 export default function App() {
   const navigate = useNavigate();
@@ -166,6 +167,7 @@ export default function App() {
 
   return (
     <>
+      <NavBar onStart={handleStart} />
       <Routes>
         <Route path="/" element={<LandingPage onStart={handleStart} onNavigate={(key) => key === 'mentors' && handleAcceptRoadmap()} />} />
         <Route path="/form" element={<StudentInputForm onSubmit={handleStudentSubmit} />} />

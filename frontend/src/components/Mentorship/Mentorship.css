@@ -31,31 +31,40 @@
   padding: 0;
 }
 
-.mentor-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
+/* Card style for mentors */
+.mentor-card-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   border-radius: 14px;
-  background: rgba(255,255,255,0.03);
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 160px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.mentor-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+.mentor-card-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 40px rgba(31, 38, 135, 0.18);
 }
 
-.mentor-card img {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  object-fit: cover;
-}
+.mentor-card-top { display: flex; gap: 1rem; align-items: flex-start; }
+.mentor-card-avatar { width: 72px; height: 72px; border-radius: 12px; object-fit: cover; }
+.mentor-card-main { flex: 1; }
+.mentor-card-name { margin: 0 0 0.25rem 0; color: #eaf6ff; font-size: 1.05rem; }
+.mentor-card-expertise { margin: 0; color: #9fd0ff; font-size: 0.95rem; }
+.mentor-card-bio { margin: 0.6rem 0 0 0; color: #cfe7ff; font-size: 0.9rem; opacity: 0.95; }
 
-.mentor-info h3 { margin: 0; color: #dff0ff; }
-.mentor-info p { margin: 0; color: #bcd8ff; font-size: 0.95rem; }
+.mentor-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 0.9rem; }
+.mentor-tags { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+.mentor-tag { background: rgba(90,164,255,0.12); color: #bfe3ff; padding: 0.28rem 0.6rem; border-radius: 999px; font-size: 0.82rem; }
+
+.mentor-actions { display: flex; align-items: center; }
+.btn-outline { background: transparent; border: 1px solid rgba(95,140,255,0.18); color: #bcd8ff; padding: 0.45rem 0.85rem; border-radius: 10px; cursor: pointer; }
+.btn-outline:hover { border-color: rgba(95,140,255,0.28); }
+
+.btn-primary { padding: 0.45rem 0.9rem; border-radius: 10px; background: linear-gradient(90deg, #5aa4ff, #4c7eff); border: none; color: #fff; cursor: pointer; font-weight: 700; }
+.btn-primary:hover { transform: translateY(-2px); }
 
 /* Mentor Profile */
 .mentor-profile-container { max-width: 860px; margin: 2rem auto; padding: 1rem; }
@@ -77,6 +86,36 @@
   font-weight: 700;
   user-select: text;
 }
+
+/* Unique mentor grid */
+.mentor-list-header { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:0.75rem; }
+.mentor-list-header .subtle { color: #bcd8ff; margin-top: 0.2rem; font-size: 0.95rem; }
+.mentor-list-controls { display:flex; gap:0.6rem; align-items:center; }
+.mentor-search { padding:0.6rem 0.9rem; border-radius: 12px; border: none; min-width: 260px; background: rgba(255,255,255,0.04); color: #dde6ffcc; }
+.mentor-search:focus { outline: none; background: rgba(255,255,255,0.08); }
+
+.mentor-filter-row { display:flex; justify-content:space-between; align-items:center; margin: 0.75rem 0; }
+.mentor-filter-tags { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.mentor-filter-chip { padding:0.35rem 0.7rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.04); background: transparent; color: #bcd8ff; cursor:pointer; }
+.mentor-filter-chip.active { background: rgba(90,164,255,0.14); border-color: rgba(90,164,255,0.22); }
+
+.mentor-unique-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+
+.mentor-card-unique { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding: 1rem; border-radius: 14px; display:flex; flex-direction:column; gap:0.6rem; min-height: 190px; }
+.mentor-unique-top { display:flex; gap:0.9rem; align-items:flex-start; }
+.mentor-unique-avatar { width:72px; height:72px; border-radius:12px; object-fit:cover; flex-shrink:0; }
+.mentor-unique-title { display:flex; gap:0.6rem; align-items:center; }
+.mentor-unique-title h3 { margin:0; color:#eaf6ff; font-size:1rem; }
+.mentor-rating { color:#ffd27a; font-weight:700; font-size:0.9rem; margin-left:0.2rem; }
+.rating-num { color:#cfe7ff; font-weight:600; margin-left:0.45rem; font-size:0.85rem; }
+.mentor-unique-expertise { color:#9fd0ff; font-size:0.9rem; }
+.mentor-unique-bio { color:#cfe7ff; font-size:0.9rem; margin:0; }
+.mentor-unique-bottom { display:flex; justify-content:space-between; align-items:center; }
+.mentor-unique-tags { display:flex; gap:0.4rem; flex-wrap:wrap; }
+.mentor-tag-small { padding:0.2rem 0.5rem; font-size:0.78rem; }
+
+.btn-outline.small { padding: 0.35rem 0.7rem; border-radius: 8px; font-size:0.9rem; }
+.btn-primary.small { padding: 0.35rem 0.7rem; border-radius: 8px; font-size:0.9rem; }
 
 /* MentorChat Styling */
 .mentor-chat-container header {
