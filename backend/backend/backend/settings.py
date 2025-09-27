@@ -147,6 +147,16 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Optional: URL for n8n analysis webhook used in production. Keep empty for local dev.
-N8N_ANALYSIS_WEBHOOK_URL = os.getenv('N8N_ANALYSIS_WEBHOOK_URL', '')
-N8N_ASSESSMENT_WEBHOOK_URL = os.getenv('N8N_ASSESSMENT_WEBHOOK_URL', '')
+# Optional: URLs for n8n webhooks used in production. Keep empty for local dev.
+N8N_ANALYSIS_WEBHOOK_URL = os.getenv('N8N_ANALYSIS_WEBHOOK_URL', 'https://rehan26072002.app.n8n.cloud/webhook-test/assessment-analysis')
+N8N_ASSESSMENT_WEBHOOK_URL = os.getenv('N8N_ASSESSMENT_WEBHOOK_URL', 'https://rehan26072002.app.n8n.cloud/webhook-test/assessment-generation')
+N8N_PROFILE_WEBHOOK_URL = os.getenv('N8N_PROFILE_WEBHOOK_URL', 'https://rehan26072002.app.n8n.cloud/webhook-test/profile-input')
+N8N_CAREER_ROADMAP_WEBHOOK_URL = os.getenv('N8N_CAREER_ROADMAP_WEBHOOK_URL', 'https://rehan26072002.app.n8n.cloud/webhook-test/career-path')
+
+# Webhook timeout settings
+WEBHOOK_TIMEOUT = 120  # 2 minutes
+WEBHOOK_RETRY_ATTEMPTS = 1  # Don't retry, just fail fast
+
+# Server timeout settings
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB

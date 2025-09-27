@@ -17,7 +17,7 @@ const MentorCard = ({ mentor, onView, onMessage }) => {
   const rating = Math.round((mentor?.rating || mentor?.avg_rating || 4.6) * 10) / 10;
 
   return (
-    <article className="mentor-card-unique" aria-label={`Mentor ${mentor?.name}`}>
+    <article className="mentor-card-unique wavy-glass" aria-label={`Mentor ${mentor?.name}`}>
       <div className="mentor-unique-top">
         <img src={avatarSrc} alt={mentor?.name} className="mentor-unique-avatar" />
         <div className="mentor-unique-meta">

@@ -7,12 +7,19 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.conf import settings
 import requests
+from datetime import datetime
 from .models import UserProfile, Assessment, AssessmentQuestion, UserAnswer, AssessmentResult
 from .serializers import SanitizedAssessmentQuestionSerializer
 from .serializers import MentorSerializer, MentorshipSessionSerializer, MentorMessageSerializer
 from .models import Mentor, MentorshipSession, MentorMessage
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from .webhook_utils import (
+    trigger_profile_webhook, 
+    trigger_career_roadmap_webhook, 
+    trigger_assessment_webhook, 
+    trigger_analysis_webhook
+)
 
 User = get_user_model()
 
@@ -54,45 +61,61 @@ class CreateAssessmentView(APIView):
             defaults={'initial_profile': initial_profile}
         )
 
-        # 3. Trigger the n8n workflow to generate questions. For dev/hackathon,
-        # send a request asking for a set of 10-15 questions. If the webhook is not
-        # configured or fails in DEBUG, fall back to locally generated sample questions.
-        questions_data = None
-        webhook_url = getattr(settings, 'N8N_ASSESSMENT_WEBHOOK_URL', '')
+        # 2.1. Trigger profile submission webhook
+        profile_webhook_data = {
+            'user_id': user.id,
+            'username': user.username,
+            'email': getattr(user, 'email', ''),
+            'profile_data': initial_profile,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        profile_success, profile_response, profile_error = trigger_profile_webhook(profile_webhook_data)
+        if not profile_success:
+            # Log the error but don't fail the request
+            print(f"Profile webhook failed: {profile_error}")
+        else:
+            print(f"Profile webhook successful: {profile_response}")
+
+        # 3. Trigger the n8n workflow to generate questions
+        # ONLY use webhook-generated questions - NO FALLBACKS
         desired_questions = request.data.get('num_questions') or 12  # default to 12
 
-        if webhook_url:
-            try:
-                payload = {
-                    'initial_profile': initial_profile,
-                    'num_questions': desired_questions,
-                    'min_questions': 10,
-                    'max_questions': 15,
+        print(f"🔗 Attempting to get questions from n8n webhook...")
+        print(f"📊 Profile data: {initial_profile}")
+        print(f"🎯 Desired questions: {desired_questions}")
+        
+        # Use the webhook utility to get questions from n8n
+        assessment_success, assessment_response, assessment_error = trigger_assessment_webhook(
+            initial_profile, desired_questions
+        )
+        
+        if not assessment_success or not assessment_response:
+            # If webhook fails, return error - NO FALLBACK
+            print(f"❌ Webhook failed: {assessment_error}")
+            print(f"🔍 Webhook URL: {getattr(settings, 'N8N_ASSESSMENT_WEBHOOK_URL', 'NOT SET')}")
+            return Response({
+                "error": f"Failed to generate assessment questions: {assessment_error}",
+                "details": "Assessment questions can ONLY be generated via n8n webhook. The webhook timed out after 2 minutes. Please ensure your webhook is properly configured and can process requests within 2 minutes.",
+                "webhook_required": True,
+                "timeout_seconds": 120,
+                "debug_info": {
+                    "webhook_url_configured": bool(getattr(settings, 'N8N_ASSESSMENT_WEBHOOK_URL', '')),
+                    "error_type": type(assessment_error).__name__ if assessment_error else "Unknown"
                 }
-                n8n_response = requests.post(webhook_url, json=payload, timeout=10)
-                n8n_response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
-                questions_data = n8n_response.json()
-            except requests.exceptions.RequestException as e:
-                # If external service fails, fallback to sample questions in dev mode
-                if not getattr(settings, 'DEBUG', False):
-                    return Response({"error": f"Failed to connect to AI service: {e}"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-        if questions_data is None:
-            # Local sample questions for quick demo/hackathon use (12 questions)
-            questions_data = [
-                {"questionText": "What is 2 + 2?", "options": ["1","2","3","4"], "category": "Math", "correctAnswer": "4"},
-                {"questionText": "Which of these do you enjoy?", "options": ["Reading","Coding","Sports","Art"], "category": "Interests", "correctAnswer": None},
-                {"questionText": "Rate your interest in problem solving (1-5)", "options": ["1","2","3","4","5"], "category": "Logical Reasoning", "correctAnswer": None},
-                {"questionText": "Which subject do you prefer?", "options": ["Math","Science","History","Art"], "category": "Subject Aptitude", "correctAnswer": None},
-                {"questionText": "Do you enjoy working with numbers?", "options": ["Yes","No"], "category": "Math", "correctAnswer": None},
-                {"questionText": "Choose the task you prefer", "options": ["Design","Analyze data","Write code","Teach"], "category": "Interests", "correctAnswer": None},
-                {"questionText": "Rate your interest in teamwork (1-5)", "options": ["1","2","3","4","5"], "category": "Personality", "correctAnswer": None},
-                {"questionText": "Which tool sounds fun to you?", "options": ["Spreadsheets","3D modeling","Text editors","Cameras"], "category": "Interests", "correctAnswer": None},
-                {"questionText": "Do you enjoy solving puzzles?", "options": ["Yes","Sometimes","Rarely","No"], "category": "Logical Reasoning", "correctAnswer": None},
-                {"questionText": "Rate your comfort with public speaking (1-5)", "options": ["1","2","3","4","5"], "category": "Personality", "correctAnswer": None},
-                {"questionText": "Would you prefer a desk job or a hands-on role?", "options": ["Desk","Hands-on","Field","Mixed"], "category": "Interests", "correctAnswer": None},
-                {"questionText": "How much do you enjoy creative tasks? (1-5)", "options": ["1","2","3","4","5"], "category": "Creativity", "correctAnswer": None},
-            ]
+        questions_data = assessment_response.get('questions', assessment_response)
+        
+        if not questions_data or not isinstance(questions_data, list):
+            print(f"❌ Invalid webhook response: {assessment_response}")
+            return Response({
+                "error": "Invalid response from assessment webhook",
+                "details": "Expected 'questions' array in webhook response",
+                "webhook_required": True
+            }, status=status.HTTP_502_BAD_GATEWAY)
+
+        print(f"✅ Successfully received {len(questions_data)} questions from n8n webhook")
 
         # 4. Save the assessment and questions securely in the database
         try:
@@ -103,16 +126,30 @@ class CreateAssessmentView(APIView):
                 # Create question objects from the n8n response
                 questions_to_create = []
                 for q_data in questions_data:
+                    # Validate that question has correct answer (required for webhook questions)
+                    correct_answer = q_data.get('correctAnswer')
+                    if not correct_answer:
+                        print(f"⚠️ Warning: Question missing correct answer: {q_data.get('questionText', 'Unknown')}")
+                    
+                    # Store both question and answer in backend
                     questions_to_create.append(
                         AssessmentQuestion(
                             assessment=assessment,
                             question_text=q_data.get('questionText'),
                             options=q_data.get('options'),
                             category=q_data.get('category'),
-                            correct_answer=q_data.get('correctAnswer') # Save the answer securely
+                            correct_answer=correct_answer # Store the correct answer securely
                         )
                     )
+                
+                if not questions_to_create:
+                    return Response({
+                        "error": "No valid questions received from webhook",
+                        "details": "All questions must have correct answers when generated via webhook"
+                    }, status=status.HTTP_502_BAD_GATEWAY)
+                
                 AssessmentQuestion.objects.bulk_create(questions_to_create)
+                print(f"💾 Saved {len(questions_to_create)} webhook-generated questions to database")
         except Exception as e:
              return Response({"error": f"Failed to save assessment: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -124,6 +161,8 @@ class CreateAssessmentView(APIView):
             'assessment_id': assessment.id,
             'questions': serializer.data,
         }, status=status.HTTP_201_CREATED)
+
+
 
 
 class SubmitAssessmentView(APIView):
@@ -160,8 +199,10 @@ class SubmitAssessmentView(APIView):
 
             is_correct = None
             if q.correct_answer is not None and selected is not None:
-                # simple equality check (could be enhanced)
-                is_correct = str(selected).strip().lower() == str(q.correct_answer).strip().lower()
+                # Enhanced validation using stored correct answers
+                correct_answer = str(q.correct_answer).strip().lower()
+                selected_answer = str(selected).strip().lower()
+                is_correct = selected_answer == correct_answer
 
             # Track category scoring
             cat = q.category or 'General'
@@ -191,6 +232,11 @@ class SubmitAssessmentView(APIView):
             correct = category_correct.get(cat, 0)
             category_scores[cat] = round(correct / total if total > 0 else 0, 3)
 
+        # Compute overall correct/total and percentage
+        overall_total = sum(category_totals.values()) if category_totals else 0
+        overall_correct = sum(category_correct.get(cat, 0) for cat in category_totals.keys()) if category_totals else 0
+        overall_percentage = round((overall_correct / overall_total * 100) if overall_total > 0 else 0.0, 1)
+
         # Call analysis webhook or fallback to local simple analysis
         analysis_payload = {
             'category_scores': category_scores,
@@ -198,14 +244,10 @@ class SubmitAssessmentView(APIView):
         }
 
         analysis_result = None
-        N8N_ANALYSIS_WEBHOOK_URL = getattr(settings, 'N8N_ANALYSIS_WEBHOOK_URL', None)
-        if N8N_ANALYSIS_WEBHOOK_URL and 'YOUR_N8N' not in N8N_ANALYSIS_WEBHOOK_URL:
-            try:
-                resp = requests.post(N8N_ANALYSIS_WEBHOOK_URL, json=analysis_payload, timeout=6)
-                resp.raise_for_status()
-                analysis_result = resp.json()
-            except requests.exceptions.RequestException:
-                analysis_result = None
+        analysis_success, analysis_response, analysis_error = trigger_analysis_webhook(analysis_payload)
+        
+        if analysis_success and analysis_response:
+            analysis_result = analysis_response
 
         if analysis_result is None:
             # Simple fallback analysis: map top categories to careers
@@ -236,12 +278,78 @@ class SubmitAssessmentView(APIView):
             }
         )
 
+        # Trigger career roadmap webhook
+        career_roadmap_data = {
+            'assessment_id': assessment.id,
+            'user_id': user.id,
+            'category_scores': category_scores,
+            'overall_percentage': overall_percentage,
+            'recommendations': analysis_result.get('recommendations', []),
+            'personality_traits': personality_traits,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # Get user profile for additional context
+        try:
+            user_profile = UserProfile.objects.get(user=user)
+            profile_data = user_profile.initial_profile
+        except UserProfile.DoesNotExist:
+            profile_data = None
+        
+        career_roadmap_success, career_roadmap_response, career_roadmap_error = trigger_career_roadmap_webhook(
+            career_roadmap_data, profile_data
+        )
+        
+        if not career_roadmap_success:
+            print(f"Career roadmap webhook failed: {career_roadmap_error}")
+        else:
+            print(f"Career roadmap webhook successful: {career_roadmap_response}")
+
         return Response({
             'assessment_id': assessment.id,
             'category_scores': category_scores,
+            'overall_percentage': overall_percentage,
             'recommendations': analysis_result.get('recommendations', []),
-            'explanation': analysis_result.get('explanation', '')
+            'explanation': analysis_result.get('explanation', ''),
+            'career_roadmap_triggered': career_roadmap_success
         }, status=status.HTTP_200_OK)
+
+
+class AssessmentDetailView(APIView):
+    """Return sanitized questions for a given assessment id so frontends can re-load questions.
+    Only returns questions that were generated via n8n webhook.
+    """
+    permission_classes = [AllowAny] if getattr(settings, 'DEBUG', False) else [IsAuthenticated]
+
+    def get(self, request, assessment_id):
+        try:
+            assessment = Assessment.objects.get(id=assessment_id)
+        except Assessment.DoesNotExist:
+            return Response({"error": "Assessment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # In non-debug mode ensure ownership
+        if not getattr(settings, 'DEBUG', False) and assessment.user != _get_request_user(request):
+            return Response({"error": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+
+        # Only return questions that have correct answers (indicating they came from webhook)
+        webhook_questions = assessment.questions.filter(correct_answer__isnull=False)
+        
+        if not webhook_questions.exists():
+            return Response({
+                "error": "No webhook-generated questions found for this assessment",
+                "details": "This assessment may contain old predetermined questions. Please create a new assessment.",
+                "webhook_required": True
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        print(f"📋 Returning {webhook_questions.count()} webhook-generated questions for assessment {assessment_id}")
+        
+        serializer = SanitizedAssessmentQuestionSerializer(webhook_questions, many=True)
+        return Response({
+            'assessment_id': assessment.id, 
+            'questions': serializer.data,
+            'source': 'n8n_webhook',
+            'total_questions': webhook_questions.count()
+        })
 
 
 class MentorListView(APIView):
@@ -316,3 +424,66 @@ class PostMessageView(APIView):
         messages = session.messages.order_by('created_at')
         serializer = MentorMessageSerializer(messages, many=True)
         return Response(serializer.data)
+
+
+class CareerRoadmapView(APIView):
+    """
+    Trigger career roadmap guidance webhook for a specific assessment.
+    This can be called independently to generate career roadmaps.
+    """
+    permission_classes = [AllowAny] if getattr(settings, 'DEBUG', False) else [IsAuthenticated]
+
+    def post(self, request, assessment_id):
+        user = _get_request_user(request)
+        if user is None:
+            return Response({"error": "Authentication required."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            assessment = Assessment.objects.get(id=assessment_id)
+        except Assessment.DoesNotExist:
+            return Response({"error": "Assessment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Ensure ownership unless in DEBUG/demo mode
+        if not getattr(settings, 'DEBUG', False) and assessment.user != user:
+            return Response({"error": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+
+        # Get assessment result
+        try:
+            assessment_result = AssessmentResult.objects.get(assessment=assessment)
+        except AssessmentResult.DoesNotExist:
+            return Response({"error": "Assessment not completed or analyzed yet."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get user profile for additional context
+        try:
+            user_profile = UserProfile.objects.get(user=user)
+            profile_data = user_profile.initial_profile
+        except UserProfile.DoesNotExist:
+            profile_data = None
+
+        # Prepare career roadmap data
+        career_roadmap_data = {
+            'assessment_id': assessment.id,
+            'user_id': user.id,
+            'category_scores': assessment_result.category_scores,
+            'recommended_careers': assessment_result.recommended_careers,
+            'timestamp': datetime.now().isoformat(),
+            'action': 'career_roadmap_request'
+        }
+
+        # Trigger career roadmap webhook
+        career_roadmap_success, career_roadmap_response, career_roadmap_error = trigger_career_roadmap_webhook(
+            career_roadmap_data, profile_data
+        )
+
+        if not career_roadmap_success:
+            return Response({
+                "error": f"Failed to generate career roadmap: {career_roadmap_error}",
+                "success": False
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        return Response({
+            "success": True,
+            "assessment_id": assessment.id,
+            "career_roadmap": career_roadmap_response,
+            "message": "Career roadmap generated successfully"
+        }, status=status.HTTP_200_OK)

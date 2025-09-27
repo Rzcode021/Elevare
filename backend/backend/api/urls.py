@@ -1,9 +1,20 @@
 from django.urls import path
-from .views import CreateAssessmentView, SubmitAssessmentView, MentorListView, StartSessionView, PostMessageView, MentorDetailView
+from .views import (
+    CreateAssessmentView,
+    SubmitAssessmentView,
+    MentorListView,
+    StartSessionView,
+    PostMessageView,
+    MentorDetailView,
+    AssessmentDetailView,
+    CareerRoadmapView,
+)
 
 urlpatterns = [
     path('assessments/create/', CreateAssessmentView.as_view(), name='create-assessment'),
     path('assessments/<int:assessment_id>/submit/', SubmitAssessmentView.as_view(), name='submit-assessment'),
+    path('assessments/<int:assessment_id>/', AssessmentDetailView.as_view(), name='assessment-detail'),
+    path('assessments/<int:assessment_id>/career-roadmap/', CareerRoadmapView.as_view(), name='career-roadmap'),
 
     # Mentorship
     path('mentors/', MentorListView.as_view(), name='mentor-list'),

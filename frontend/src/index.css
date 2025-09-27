@@ -11,8 +11,13 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
 
+  /* Glassmorphism variables */
+  --glass-accent-1: rgba(34,211,238,0.12);
+  --glass-accent-2: rgba(109,94,252,0.10);
+  --glass-border: rgba(255,255,255,0.06);
+  --glass-highlight: rgba(255,255,255,0.06);
+}
 
 a {
   font-weight: 500;
@@ -66,4 +71,19 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+/* Removed global glassmorphism: make .wavy-glass a neutral container to simplify visuals */
+.wavy-glass {
+  position: relative;
+  background: transparent; /* keep background neutral; individual components can set background */
+  border-radius: 12px;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+/* noop pseudo-elements to avoid leftover animations */
+.wavy-glass::before,
+.wavy-glass::after {
+  display: none;
 }

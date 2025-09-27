@@ -12,9 +12,10 @@ import PerformanceTracker from './components/CareerChallenge/PerformanceTracker'
 import MentorList from './components/Mentorship/MentorList';
 import MentorChat from './components/Mentorship/MentorChat';
 import MentorProfile from './components/Mentorship/MentorProfile';
+import TrialQuiz from './components/TrialQuiz/TrialQuiz';
 import SessionAgenda from './components/Mentorship/SessionAgenda';
 import SessionSummary from './components/Mentorship/SessionSummary';
-import { calculateResults } from './utils/calculateResults';
+import { calculateResults } from './Utils/calculateResults';
 import NavBar from './components/NavBar/NavBar';
 
 export default function App() {
@@ -48,24 +49,85 @@ export default function App() {
     // send initial profile to backend to create assessment
     setStudentData(data);
     const payload = { initial_profile: data };
+    
+    // Show loading state
+    setBackendQuestions([]); // Clear any existing questions
+    setAssessmentId(null); // Clear any existing assessment ID
+    
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 150000); // 2.5 minutes timeout
+    
     fetch('http://127.0.0.1:8000/api/assessments/create/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
       .then((json) => {
+        clearTimeout(timeoutId); // Clear timeout on success
         // backend returns { assessment_id, questions }
-        setAssessmentId(json.assessment_id);
-        setBackendQuestions(json.questions || null);
-  try { navigate('/aptitude'); } catch(e) { setStep(2); }
+        if (json.assessment_id && json.questions && json.questions.length > 0) {
+          setAssessmentId(json.assessment_id);
+          setBackendQuestions(json.questions);
+          // persist assessment id so user can refresh without losing questions
+          try { localStorage.setItem('assessment_id', json.assessment_id); } catch(e) {}
+          try { navigate('/aptitude'); } catch(e) { setStep(2); }
+        } else {
+          throw new Error('Invalid response from assessment service');
+        }
       })
       .catch((err) => {
+        clearTimeout(timeoutId); // Clear timeout on error
         console.error('Failed to create assessment:', err);
-        // fallback to local flow
-  try { navigate('/aptitude'); } catch(e) { setStep(2); }
+        
+        // Handle different types of errors
+        let errorMessage = 'Assessment creation failed. ';
+        if (err.name === 'AbortError') {
+          errorMessage += 'Request timed out after 2.5 minutes. Please try again.';
+        } else if (err.message.includes('503')) {
+          errorMessage += 'The assessment service is temporarily unavailable. Please ensure the n8n webhook is properly configured and try again.';
+        } else {
+          errorMessage += err.message;
+        }
+        
+        alert(`${errorMessage}\n\nPlease ensure the n8n webhook is properly configured.`);
       });
   };
+
+  // On app mount, if there's an assessment_id persisted but no backendQuestions yet, fetch them
+  React.useEffect(() => {
+    const savedId = localStorage.getItem('assessment_id');
+    if (savedId && !backendQuestions) {
+      setAssessmentId(savedId);
+      (async () => {
+        try {
+          const res = await fetch(`http://127.0.0.1:8000/api/assessments/${savedId}/`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.questions && data.questions.length > 0) {
+              setBackendQuestions(data.questions);
+            } else {
+              console.warn('No questions found in persisted assessment');
+              localStorage.removeItem('assessment_id');
+            }
+          } else {
+            console.warn('Failed to load persisted assessment, clearing stored ID');
+            localStorage.removeItem('assessment_id');
+          }
+        } catch (e) {
+          console.error('Failed to load persisted assessment questions', e);
+          localStorage.removeItem('assessment_id');
+        }
+      })();
+    }
+  }, [backendQuestions]);
 
   const handleAptitudeComplete = async (answers) => {
     setAptitudeAnswers(answers);
@@ -167,13 +229,18 @@ export default function App() {
 
   return (
     <>
+      <div className="background-animated" aria-hidden="true"></div>
       <NavBar onStart={handleStart} />
       <Routes>
-        <Route path="/" element={<LandingPage onStart={handleStart} onNavigate={(key) => key === 'mentors' && handleAcceptRoadmap()} />} />
+        <Route path="/" element={<LandingPage onStart={handleStart} onNavigate={(key) => {
+          if (key === 'mentors') return handleAcceptRoadmap();
+          if (key === 'trial') return navigate('/trial');
+        }} />} />
         <Route path="/form" element={<StudentInputForm onSubmit={handleStudentSubmit} />} />
         <Route path="/aptitude" element={<AptitudeTest onComplete={handleAptitudeComplete} questions={backendQuestions} />} />
         <Route path="/results" element={<CalculateResult results={results} onNext={handleCalculationNext} />} />
         <Route path="/career" element={<CareerRecommendation recommendations={recommendations} onAccept={handleAcceptRoadmap} onChallenge={handleTakeChallenge} onCancel={handleCancel} />} />
+  <Route path="/trial" element={<TrialQuiz />} />
         <Route path="/challenge" element={<ChallengeIntro onStart={handleStartChallenge} />} />
         <Route path="/task" element={<DailyTask day={challengeDay} onComplete={handleCompleteTask} onPrev={handlePrevTask} />} />
         <Route path="/tracker" element={<PerformanceTracker completedDays={completedDays} />} />

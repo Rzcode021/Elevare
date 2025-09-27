@@ -95,9 +95,9 @@ const MentorProfile = ({ mentor: propMentor, onBack, onStartSession }) => {
   }, [messages]);
 
   return (
-    <div className="mentor-profile-container">
+    <div className="mentor-profile-container wavy-glass">
       <button className="back-btn" onClick={onBack}>Back to mentors</button>
-      <div className="profile-card">
+      <div className="profile-card wavy-glass">
         <img src={avatarSrc} alt={mentor.name} />
         <div className="profile-info">
           <h2>{mentor.name}</h2>
@@ -110,7 +110,7 @@ const MentorProfile = ({ mentor: propMentor, onBack, onStartSession }) => {
       </div>
 
       {/* Embedded chat */}
-      <div className="mentor-chat-container" style={{ marginTop: '1.5rem' }}>
+  <div className="mentor-chat-container wavy-glass" style={{ marginTop: '1.5rem' }}>
         <header>
           <h2>Message {mentor.name}</h2>
         </header>
